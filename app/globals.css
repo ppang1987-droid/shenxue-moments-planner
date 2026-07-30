@@ -3,11 +3,13 @@
   --muted: #667085;
   --line: #d7e2e4;
   --teal: #0b8f8f;
-  --green: #19a57e;
+  --green: #13856f;
   --blue: #073f86;
   --gold: #dba83c;
   --paper: #f7fbfb;
+  --soft: #eef7f6;
   --white: #ffffff;
+  --danger: #b42318;
 }
 
 * {
@@ -24,7 +26,8 @@ body {
 }
 
 button,
-textarea {
+textarea,
+input {
   font: inherit;
 }
 
@@ -33,21 +36,21 @@ button {
 }
 
 .shell {
-  width: min(1180px, calc(100% - 32px));
+  width: min(1220px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 28px 0 40px;
+  padding: 24px 0 42px;
 }
 
 .hero {
-  min-height: 430px;
+  min-height: 420px;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: minmax(0, 1.1fr) 360px;
   gap: 24px;
   align-items: stretch;
   padding: 30px;
   border-radius: 18px;
   background:
-    radial-gradient(circle at 84% 88%, rgba(219, 168, 60, 0.18), transparent 28%),
+    radial-gradient(circle at 88% 86%, rgba(219, 168, 60, 0.18), transparent 28%),
     linear-gradient(135deg, #09213a 0%, #0a6f66 58%, #0f756d 100%);
   color: white;
   overflow: hidden;
@@ -61,8 +64,8 @@ button {
 }
 
 .brand img {
-  width: 78px;
-  height: 78px;
+  width: 76px;
+  height: 76px;
   object-fit: contain;
   padding: 8px;
   border-radius: 12px;
@@ -86,22 +89,23 @@ button {
 
 .hero-copy {
   align-self: center;
-  max-width: 620px;
+  max-width: 650px;
 }
 
 .hero-copy h1 {
   margin: 12px 0 16px;
-  font-size: clamp(36px, 6vw, 68px);
-  line-height: 1.05;
+  max-width: 680px;
+  font-size: clamp(36px, 5vw, 62px);
+  line-height: 1.08;
   letter-spacing: 0;
 }
 
 .hero-copy p {
-  max-width: 560px;
+  max-width: 600px;
   margin: 0;
   color: rgba(255, 255, 255, 0.78);
   font-size: 16px;
-  line-height: 1.8;
+  line-height: 1.75;
 }
 
 .rhythm {
@@ -110,48 +114,88 @@ button {
   gap: 12px;
 }
 
-.rhythm article,
-.panel,
-.archive {
+.rhythm-card {
+  min-height: 104px;
+  padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.12);
+  color: white;
+  text-align: left;
 }
 
-.rhythm article {
-  padding: 16px;
+.rhythm-card.active {
+  border-color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-.rhythm span {
+.rhythm-card span {
   color: var(--gold);
   font-weight: 900;
 }
 
-.rhythm strong {
+.rhythm-card strong {
   display: block;
   margin: 6px 0;
   font-size: 18px;
 }
 
-.rhythm p {
+.rhythm-card p {
   margin: 0;
-  color: rgba(255, 255, 255, 0.74);
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.76);
+  line-height: 1.55;
 }
 
-.workspace {
+.status-strip {
   display: grid;
-  grid-template-columns: 380px minmax(0, 1fr);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 14px 0;
+}
+
+.status-strip article,
+.panel,
+.archive {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: 0 16px 45px rgba(16, 36, 63, 0.08);
+}
+
+.status-strip article {
+  min-height: 76px;
+  padding: 16px;
+}
+
+.status-strip strong {
+  display: block;
+  font-size: 24px;
+}
+
+.status-strip span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status-strip .ok strong {
+  color: var(--green);
+}
+
+.status-strip .warn strong,
+.risk-box svg {
+  color: var(--danger);
+}
+
+.workspace,
+.lower-grid {
+  display: grid;
+  grid-template-columns: 390px minmax(0, 1fr);
   gap: 16px;
-  margin-top: 16px;
 }
 
 .panel,
 .archive {
   padding: 22px;
-  background: var(--white);
-  border-color: var(--line);
-  box-shadow: 0 16px 45px rgba(16, 36, 63, 0.08);
 }
 
 .panel-title {
@@ -165,18 +209,38 @@ button {
   color: var(--teal);
 }
 
+.panel-title strong {
+  min-width: 0;
+}
+
+.output-title strong {
+  overflow-wrap: anywhere;
+}
+
+.section-label {
+  margin: 18px 0 8px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .topic-grid {
   display: grid;
   gap: 10px;
 }
 
-.topic-grid button {
-  min-height: 78px;
-  padding: 14px;
+.topic-grid button,
+.segmented button,
+.sample-list button {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fbfefe;
   color: var(--ink);
+}
+
+.topic-grid button {
+  min-height: 76px;
+  padding: 14px;
   text-align: left;
 }
 
@@ -201,19 +265,39 @@ button {
   line-height: 1.5;
 }
 
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.segmented button {
+  min-height: 40px;
+  padding: 0 10px;
+  font-weight: 800;
+}
+
+.segmented button.active {
+  border-color: var(--blue);
+  background: var(--blue);
+  color: white;
+}
+
 .manual {
   display: grid;
   gap: 8px;
-  margin: 16px 0;
+  margin: 16px 0 12px;
 }
 
 .manual textarea {
-  min-height: 126px;
+  min-height: 128px;
   resize: vertical;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 12px;
   outline: none;
+  color: var(--ink);
+  background: white;
 }
 
 .manual textarea:focus {
@@ -221,9 +305,34 @@ button {
   box-shadow: 0 0 0 3px rgba(25, 165, 126, 0.14);
 }
 
+.sample-list {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.sample-list button {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  min-height: 46px;
+  padding: 10px;
+  color: var(--muted);
+  text-align: left;
+  line-height: 1.45;
+}
+
+.sample-list svg {
+  margin-top: 2px;
+  color: var(--teal);
+}
+
 .primary,
 .actions button,
-.asset button {
+.asset button,
+.archive article button,
+.text-action {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -243,7 +352,20 @@ button {
 }
 
 .output {
-  min-height: 560px;
+  min-height: 650px;
+}
+
+.risk-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 12px;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  background: #fff6f5;
+  color: var(--danger);
+  font-size: 14px;
 }
 
 .asset {
@@ -277,6 +399,21 @@ button {
   gap: 12px;
 }
 
+.asset.two > div {
+  min-width: 0;
+}
+
+.asset.compact {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.asset.compact span {
+  grid-column: 1 / -1;
+}
+
 .actions {
   display: flex;
   gap: 10px;
@@ -289,16 +426,20 @@ button {
 }
 
 .empty {
-  min-height: 420px;
+  min-height: 480px;
   display: grid;
   place-content: center;
   gap: 10px;
   text-align: center;
-  color: var(--ink);
 }
 
-.archive {
+.empty strong {
+  font-size: 22px;
+}
+
+.lower-grid {
   margin-top: 16px;
+  align-items: start;
 }
 
 .archive article {
@@ -317,9 +458,52 @@ button {
   margin-top: 4px;
 }
 
-@media (max-width: 900px) {
+.archive article button,
+.text-action {
+  min-height: 34px;
+  margin-top: 10px;
+  padding: 0 12px;
+  background: var(--soft);
+  color: var(--blue);
+}
+
+.text-action {
+  margin-left: auto;
+  margin-top: 0;
+}
+
+.checklist {
+  display: grid;
+  gap: 10px;
+}
+
+.checklist label {
+  display: grid;
+  grid-template-columns: 22px 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfefe;
+}
+
+.checklist input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--teal);
+}
+
+.checklist span {
+  color: var(--gold);
+  font-weight: 900;
+}
+
+@media (max-width: 960px) {
   .hero,
   .workspace,
+  .lower-grid,
   .asset.two {
     grid-template-columns: 1fr;
   }
@@ -333,9 +517,9 @@ button {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .shell {
-    width: min(100% - 20px, 1180px);
+    width: min(100% - 20px, 1220px);
     padding-top: 10px;
   }
 
@@ -345,6 +529,16 @@ button {
   }
 
   .hero-copy h1 {
-    font-size: 32px;
+    font-size: 31px;
+  }
+
+  .status-strip,
+  .segmented,
+  .asset.compact {
+    grid-template-columns: 1fr;
+  }
+
+  .checklist label {
+    grid-template-columns: 22px 52px minmax(0, 1fr);
   }
 }
