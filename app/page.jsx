@@ -82,6 +82,13 @@ const tones = [
   { id: "short", name: "短句清爽", hint: "适合忙的时候快速发布", voice: "短句、有停顿、适合直接发" }
 ];
 
+const audiences = [
+  { id: "client", name: "客户版", hint: "适合发给家庭客户看，少术语，多提醒" },
+  { id: "peer", name: "同业版", hint: "适合建立专业判断，不炫技" },
+  { id: "family", name: "家庭聊天版", hint: "适合更生活化的朋友圈" },
+  { id: "quote", name: "金句版", hint: "适合配图封面或短朋友圈" }
+];
+
 const trendExamples = [
   "今天刷到一个讨论：很多家庭开始重新算父母养老和自己退休的现金流，焦点不是缺不缺钱，而是未来十年哪些支出一定会发生。",
   "有个热帖说住院账单只是表面压力，真正难的是陪护时间、收入中断和康复期安排，这其实很适合转成家庭保障盘点。",
@@ -127,6 +134,28 @@ function buildMaterial(topic, slot, tone, customText) {
     noon: `${topic.title}的 3 个盘点动作`,
     night: `今天复盘：别把${topic.title}想窄了`
   }[slot.id];
+  const variants = {
+    client: {
+      label: "客户版",
+      purpose: "适合直接发朋友圈，客户读起来不压迫",
+      text: `${cue}\n\n很多家庭看到这类话题，会先问“要不要马上做点什么”。\n\n我的建议反而是先慢一点：先看清家里现在承担哪些责任，未来几年有哪些确定支出，已有安排能不能接得住。\n\n${topic.question}\n\n把这个问题聊清楚，比急着找答案更重要。`
+    },
+    peer: {
+      label: "同业版",
+      purpose: "适合建立专业判断，给同业看到方法感",
+      text: `${cue}\n\n这个选题的价值，不在于蹭热点，而在于把公众情绪转成家庭规划问题。\n\n可以从三个层面拆：\n1. 责任对象是谁\n2. 现金流压力在哪里\n3. 已有安排是否互相配合\n\n${topic.misread}\n\n越是热点，越要回到家庭真实结构。`
+    },
+    family: {
+      label: "家庭聊天版",
+      purpose: "适合生活化表达，不像宣传",
+      text: `${cue}\n\n这件事其实挺适合一家人坐下来聊聊。\n\n不是为了马上做决定，也不是为了制造压力，而是看看如果真的遇到类似情况，家里谁负责、钱怎么安排、哪些事需要提前说清楚。\n\n${topic.question}\n\n很多家庭问题，提前聊过一次，后面就少一点慌。`
+    },
+    quote: {
+      label: "金句版",
+      purpose: "适合做封面主文案或短朋友圈",
+      text: `${topic.insight}\n\n热点提醒我们关注问题，规划帮助家庭看清顺序。\n\n先看责任，再看现金流，最后看已有安排。`
+    }
+  };
 
   return {
     topic: topic.title,
@@ -140,6 +169,7 @@ function buildMaterial(topic, slot, tone, customText) {
       boundary: "只做家庭规划提醒，不承诺收益、不暗示产品结果、不制造焦虑。"
     },
     post,
+    variants,
     card: `主标题：${title}\n副标题：先看家庭责任，再看现金流，再看已有安排\n画面结构：${topic.visualModules.join(" / ")}\n视觉要求：白底留白，蓝绿主色，金色只做重点提示，右下角放申学 Family logo。\n底部小字：内容仅作家庭规划思路参考，不构成具体产品建议。`,
     comment: `你觉得${topic.title}最容易被忽略的是钱、时间，还是家庭沟通？`,
     chat: `您好，我今天整理了一个关于「${topic.title}」的小盘点。它不涉及具体产品，主要是帮助家庭先看清责任、现金流和已有安排。您有空的话，可以先从这个问题开始：${topic.question}`,
@@ -155,6 +185,10 @@ function buildMaterial(topic, slot, tone, customText) {
 }
 
 function materialMarkdown(material) {
+  const variantText = Object.values(material.variants || {})
+    .map((item) => `### ${item.label}\n\n使用场景：${item.purpose}\n\n${item.text}`)
+    .join("\n\n");
+
   return `# ${material.topic}｜${material.slot}
 
 生成时间：${material.createdAt}
@@ -163,6 +197,10 @@ function materialMarkdown(material) {
 ## 朋友圈正文
 
 ${material.post}
+
+## 多版本朋友圈
+
+${variantText || "旧版素材未生成多版本内容。"}
 
 ## 选题判断
 
@@ -198,6 +236,7 @@ export default function MomentsStandalonePage() {
   const [topicId, setTopicId] = useState("pension");
   const [slotId, setSlotId] = useState("morning");
   const [toneId, setToneId] = useState("steady");
+  const [audienceId, setAudienceId] = useState("client");
   const [customText, setCustomText] = useState("");
   const [material, setMaterial] = useState(null);
   const [archive, setArchive] = useState(() => loadJson(storageKeys.archive, []));
@@ -215,9 +254,11 @@ export default function MomentsStandalonePage() {
   const topic = useMemo(() => topics.find((item) => item.id === topicId) || topics[0], [topicId]);
   const slot = useMemo(() => slots.find((item) => item.id === slotId) || slots[0], [slotId]);
   const tone = useMemo(() => tones.find((item) => item.id === toneId) || tones[0], [toneId]);
+  const audience = useMemo(() => audiences.find((item) => item.id === audienceId) || audiences[0], [audienceId]);
   const today = new Date().toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit", weekday: "short" });
   const riskHits = useMemo(() => {
-    const text = [customText, material?.post, material?.chat].filter(Boolean).join("\n");
+    const variantText = material?.variants ? Object.values(material.variants).map((item) => item.text).join("\n") : "";
+    const text = [customText, material?.post, material?.chat, variantText].filter(Boolean).join("\n");
     return riskyWords.filter((word) => text.includes(word));
   }, [customText, material]);
 
@@ -322,6 +363,16 @@ export default function MomentsStandalonePage() {
             ))}
           </div>
 
+          <div className="section-label">发布对象</div>
+          <div className="audience-grid">
+            {audiences.map((item) => (
+              <button className={audienceId === item.id ? "active" : ""} key={item.id} onClick={() => setAudienceId(item.id)} title={item.hint}>
+                <strong>{item.name}</strong>
+                <span>{item.hint}</span>
+              </button>
+            ))}
+          </div>
+
           <label className="manual">
             <span>手动导入热点</span>
             <textarea value={customText} onChange={(event) => setCustomText(event.target.value)} placeholder="粘贴微博、知乎、抖音、小红书或新闻里的热点摘要..." />
@@ -338,7 +389,7 @@ export default function MomentsStandalonePage() {
 
           <button className="primary" onClick={generate}>
             <Sparkles size={17} />
-            生成 {slot.time} 素材
+            生成 {slot.time} {audience.name}
           </button>
         </aside>
 
@@ -378,6 +429,25 @@ export default function MomentsStandalonePage() {
                 <p>{material.post}</p>
                 <button onClick={() => copyText("post", material.post)}><Clipboard size={15} />{copied === "post" ? "已复制" : "复制正文"}</button>
               </div>
+
+              <div className="variant-board">
+                <div className="variant-tabs">
+                  {audiences.map((item) => (
+                    <button className={audienceId === item.id ? "active" : ""} key={item.id} onClick={() => setAudienceId(item.id)}>
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+                <article className="variant-copy">
+                  <span>{material.variants[audienceId].purpose}</span>
+                  <p>{material.variants[audienceId].text}</p>
+                  <button onClick={() => copyText(`variant-${audienceId}`, material.variants[audienceId].text)}>
+                    <Clipboard size={15} />
+                    {copied === `variant-${audienceId}` ? "已复制" : `复制${material.variants[audienceId].label}`}
+                  </button>
+                </article>
+              </div>
+
               <div className="asset two">
                 <div>
                   <span>配图方向</span>

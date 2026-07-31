@@ -230,6 +230,7 @@ button {
 }
 
 .topic-grid button,
+.audience-grid button,
 .segmented button,
 .sample-list button {
   border: 1px solid var(--line);
@@ -256,6 +257,7 @@ button {
 }
 
 .topic-grid span,
+.audience-grid span,
 .manual span,
 .asset span,
 .muted,
@@ -281,6 +283,33 @@ button {
   border-color: var(--blue);
   background: var(--blue);
   color: white;
+}
+
+.audience-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.audience-grid button {
+  min-height: 74px;
+  padding: 12px;
+  text-align: left;
+}
+
+.audience-grid button.active {
+  border-color: var(--blue);
+  background: #eef5ff;
+  box-shadow: inset 4px 0 0 var(--blue);
+}
+
+.audience-grid strong,
+.audience-grid span {
+  display: block;
+}
+
+.audience-grid span {
+  margin-top: 4px;
 }
 
 .manual {
@@ -428,6 +457,70 @@ button {
 .asset button {
   margin-top: 14px;
   background: var(--teal);
+}
+
+.variant-board {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fbfefe;
+}
+
+.variant-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--line);
+  background: #eef7f6;
+}
+
+.variant-tabs button {
+  min-height: 42px;
+  border: 0;
+  border-right: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.variant-tabs button:last-child {
+  border-right: 0;
+}
+
+.variant-tabs button.active {
+  background: white;
+  color: var(--blue);
+}
+
+.variant-copy {
+  padding: 16px;
+}
+
+.variant-copy span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.variant-copy p {
+  margin: 10px 0 0;
+  white-space: pre-line;
+  line-height: 1.8;
+}
+
+.variant-copy button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  margin-top: 14px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--blue);
+  color: white;
+  font-weight: 800;
 }
 
 .asset.two {
@@ -597,6 +690,8 @@ button {
 
   .status-strip,
   .segmented,
+  .audience-grid,
+  .variant-tabs,
   .asset.compact {
     grid-template-columns: 1fr;
   }
