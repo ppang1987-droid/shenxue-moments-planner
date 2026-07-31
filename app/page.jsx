@@ -24,29 +24,49 @@ const topics = [
     id: "pension",
     title: "养老与长期现金流",
     hot: "退休准备、家庭现金流、长期照护",
+    audience: "45 岁以上家庭、上有老下有小的中坚家庭",
     angle: "从家庭责任和长期现金流出发，提醒大家先盘点现状。",
-    imageFocus: "现金流时间轴、家庭责任清单、长期规划"
+    insight: "养老不是某一个年龄点才开始的决定，而是一组长期支出的提前排序。",
+    misread: "把养老规划理解成买一个产品，容易忽略医疗、照护、住房和子女支持这些真实支出。",
+    question: "如果未来十年收入节奏变化，家里的固定责任谁来接住？",
+    imageFocus: "现金流时间轴、家庭责任清单、长期规划",
+    visualModules: ["家庭责任时间轴", "固定支出清单", "已有安排盘点"]
   },
   {
     id: "medical",
     title: "医疗支出与保障盘点",
     hot: "医疗费用、健康管理、家庭保障缺口",
+    audience: "有老人、有孩子、正在关注健康管理的家庭",
     angle: "把医疗议题转成一次温和的家庭保障检查。",
-    imageFocus: "三栏知识卡、保障盘点、家庭健康预算"
+    insight: "医疗风险最难的地方，不是某一张账单，而是它会同时影响现金流、照护时间和家庭分工。",
+    misread: "只讨论报销比例，容易漏掉收入中断、异地照护和康复期支出。",
+    question: "家里如果有人住院三个月，钱、时间和照护由谁分别承担？",
+    imageFocus: "三栏知识卡、保障盘点、家庭健康预算",
+    visualModules: ["医疗费用分层", "照护时间表", "保障缺口提醒"]
   },
   {
     id: "education",
     title: "教育金与家庭预算",
     hot: "教育成本、升学规划、家庭预算",
+    audience: "0-18 岁孩子家庭、准备升学或留学预算的父母",
     angle: "用预算视角谈规划，不承诺收益或结果。",
-    imageFocus: "教育阶段地图、预算表、家庭目标"
+    insight: "教育规划的重点不是预测孩子会走哪条路，而是让家庭在不同选择前都有余地。",
+    misread: "只盯着学费总额，容易低估培训、生活、择校、陪伴时间带来的连锁成本。",
+    question: "孩子下一阶段最确定的支出是什么，最不确定的选择又是什么？",
+    imageFocus: "教育阶段地图、预算表、家庭目标",
+    visualModules: ["教育阶段地图", "确定支出表", "弹性预算区"]
   },
   {
     id: "care",
     title: "照护责任与家庭分工",
     hot: "老人照护、子女责任、家庭沟通",
+    audience: "独生子女家庭、三明治家庭、异地照护家庭",
     angle: "把照护压力转成家庭成员可讨论的清单。",
-    imageFocus: "家庭分工图、照护责任、沟通清单"
+    insight: "照护问题表面是时间安排，背后其实是钱、精力、情绪和家庭共识的再分配。",
+    misread: "等事情发生再商量，往往会把本来可以分担的问题变成临时冲突。",
+    question: "如果父母需要长期陪诊或照护，家庭里谁能出时间，谁能出钱，谁负责协调？",
+    imageFocus: "家庭分工图、照护责任、沟通清单",
+    visualModules: ["照护分工表", "家庭沟通问题", "应急联系人清单"]
   }
 ];
 
@@ -57,19 +77,20 @@ const slots = [
 ];
 
 const tones = [
-  { id: "steady", name: "稳重专业", hint: "适合客户和同业都能看到的内容" },
-  { id: "warm", name: "温和生活", hint: "更像朋友圈里的真实提醒" },
-  { id: "short", name: "短句清爽", hint: "适合忙的时候快速发布" }
+  { id: "steady", name: "稳重专业", hint: "适合客户和同业都能看到的内容", voice: "克制、清楚、有服务视角" },
+  { id: "warm", name: "温和生活", hint: "更像朋友圈里的真实提醒", voice: "像一次认真聊天，不说教" },
+  { id: "short", name: "短句清爽", hint: "适合忙的时候快速发布", voice: "短句、有停顿、适合直接发" }
 ];
 
 const trendExamples = [
-  "最近看到不少家庭开始重新讨论养老现金流：不是马上做决定，而是先看未来十年的确定支出。",
-  "医疗费用和家庭预算经常被分开看，但真正做规划时，两件事其实要放在同一张表里。",
-  "教育规划不只是准备一笔钱，也是在不同阶段提前确认家庭目标和支出节奏。",
-  "照护责任常常等到事情发生才被讨论，提前把分工说清楚，反而能减少很多临时压力。"
+  "今天刷到一个讨论：很多家庭开始重新算父母养老和自己退休的现金流，焦点不是缺不缺钱，而是未来十年哪些支出一定会发生。",
+  "有个热帖说住院账单只是表面压力，真正难的是陪护时间、收入中断和康复期安排，这其实很适合转成家庭保障盘点。",
+  "最近升学预算讨论很多，大家不是单纯焦虑学费，而是发现培训、择校、生活半径和家庭现金流都绑在一起。",
+  "照护话题又热了。很多人说最难的不是孝不孝顺，而是事情突然发生时，家庭里没有提前说清楚分工。"
 ];
 
 const riskyWords = ["保证", "稳赚", "必赔", "最高收益", "翻倍", "无风险", "一定", "躺赚"];
+const qualityRules = ["有具体家庭场景", "有误区修正", "有可执行问题", "不做产品承诺"];
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -87,30 +108,48 @@ function loadJson(key, fallback) {
 
 function buildMaterial(topic, slot, tone, customText) {
   const cue = customText.trim() || `今天看到和「${topic.hot}」有关的讨论。`;
-  const toneLead = {
-    steady: "从规划角度看",
-    warm: "我会把它理解成一个家庭提醒",
-    short: "简单说"
+  const opening = {
+    steady: "这类热点不太适合简单跟风，更适合拿来做一次家庭规划复盘。",
+    warm: "我看到这类讨论时，第一反应不是焦虑，而是想起很多家庭平时不太会坐下来聊这件事。",
+    short: "热点会过去，但家庭责任不会自动消失。"
   }[tone.id];
 
   const slotText = {
-    morning: `${cue}\n\n${toneLead}，很多家庭真正需要的不是马上做决定，而是先把责任、现金流和已有安排整理清楚。\n\n规划不是制造焦虑，也不是承诺结果。它更像一次定期体检，帮助一家人知道现在有什么、缺什么、下一步该问什么。`,
-    noon: `${cue}\n\n可以先做三个检查：\n1. 家里现在承担哪些责任\n2. 未来三到五年有哪些确定支出\n3. 已有保障和现金流能不能互相配合\n\n先看清楚，再做选择，会比临时决定更稳。`,
-    night: `${cue}\n\n今天复盘时，我更确定一件事：好的家庭规划，不是把复杂问题讲得更吓人，而是把问题拆小。\n\n先看责任，再看现金流，最后看已有安排。每一步都不用急，但每一步都值得认真看。`
+    morning: `${cue}\n\n${opening}\n\n${topic.insight}\n\n我更建议先问一个问题：${topic.question}\n\n把这个问题想清楚，再谈工具和方案，心里会稳很多。`,
+    noon: `${cue}\n\n午间可以先做一个小盘点：\n1. 这件事影响的是谁的责任\n2. 未来 3 到 5 年有没有确定支出\n3. 现有现金流和保障安排能不能互相配合\n\n很多规划不是从买什么开始，而是从看清楚家庭结构开始。`,
+    night: `${cue}\n\n今天复盘这个话题，我会把重点放在一个判断上：${topic.misread}\n\n家庭规划真正有价值的地方，是把一团压力拆成可以讨论、可以排序、可以慢慢补齐的事项。\n\n不急着下结论，先把问题讲清楚，已经是很重要的一步。`
   }[slot.id];
 
-  const shortText = `${cue}\n\n先看责任，再看现金流，最后看已有安排。规划不承诺结果，只帮助家庭把问题看清楚。`;
+  const shortText = `${cue}\n\n${topic.insight}\n\n先问自己一句：${topic.question}\n\n规划不制造焦虑，也不承诺结果，只帮助家庭把问题看清楚。`;
   const post = tone.id === "short" ? shortText : slotText;
+  const title = {
+    morning: `${topic.title}，先问对问题`,
+    noon: `${topic.title}的 3 个盘点动作`,
+    night: `今天复盘：别把${topic.title}想窄了`
+  }[slot.id];
 
   return {
     topic: topic.title,
     slot: `${slot.time} ${slot.name}`,
     tone: tone.name,
+    title,
+    strategy: {
+      audience: topic.audience,
+      angle: topic.angle,
+      insight: topic.insight,
+      boundary: "只做家庭规划提醒，不承诺收益、不暗示产品结果、不制造焦虑。"
+    },
     post,
-    card: `知识卡标题：${topic.title}的 3 个检查点\n1. 家庭责任是否清楚\n2. 现金流节奏是否稳定\n3. 已有安排是否匹配\n视觉：白底、蓝绿主色、金色重点符号，右下角放申学 Family logo。\n画面重点：${topic.imageFocus}`,
-    comment: "你家做规划时，一般会先看支出，还是先看已有保障？",
-    chat: "您好，我今天整理了一个家庭规划的小思路：先看责任，再看现金流，最后看已有安排。您有空时可以先按这三项做个简单盘点。",
+    card: `主标题：${title}\n副标题：先看家庭责任，再看现金流，再看已有安排\n画面结构：${topic.visualModules.join(" / ")}\n视觉要求：白底留白，蓝绿主色，金色只做重点提示，右下角放申学 Family logo。\n底部小字：内容仅作家庭规划思路参考，不构成具体产品建议。`,
+    comment: `你觉得${topic.title}最容易被忽略的是钱、时间，还是家庭沟通？`,
+    chat: `您好，我今天整理了一个关于「${topic.title}」的小盘点。它不涉及具体产品，主要是帮助家庭先看清责任、现金流和已有安排。您有空的话，可以先从这个问题开始：${topic.question}`,
+    extensions: [
+      `明天可以延展：${topic.title}的家庭责任清单`,
+      `本周可以做一张：${topic.visualModules[0]}朋友圈知识卡`,
+      `私域承接可以问：现在家里最确定的一笔长期支出是什么`
+    ],
     compliance: ["不做收益承诺", "不制造焦虑", "不夸大保障", "不承诺具体产品结果"],
+    quality: qualityRules,
     createdAt: new Date().toLocaleString("zh-CN")
   };
 }
@@ -125,6 +164,13 @@ function materialMarkdown(material) {
 
 ${material.post}
 
+## 选题判断
+
+- 面向人群：${material.strategy.audience}
+- 内容角度：${material.strategy.angle}
+- 专业判断：${material.strategy.insight}
+- 合规边界：${material.strategy.boundary}
+
 ## 配图方向
 
 ${material.card}
@@ -136,6 +182,10 @@ ${material.comment}
 ## 私聊承接
 
 ${material.chat}
+
+## 延展选题
+
+${material.extensions.map((item) => `- ${item}`).join("\n")}
 
 ## 合规检查
 
@@ -307,8 +357,24 @@ export default function MomentsStandalonePage() {
 
           {material ? (
             <>
+              <div className="brief-grid">
+                <article>
+                  <span>面向人群</span>
+                  <strong>{material.strategy.audience}</strong>
+                </article>
+                <article>
+                  <span>内容判断</span>
+                  <strong>{material.strategy.insight}</strong>
+                </article>
+                <article>
+                  <span>合规边界</span>
+                  <strong>{material.strategy.boundary}</strong>
+                </article>
+              </div>
+
               <div className="asset">
                 <span>朋友圈正文</span>
+                <h2>{material.title}</h2>
                 <p>{material.post}</p>
                 <button onClick={() => copyText("post", material.post)}><Clipboard size={15} />{copied === "post" ? "已复制" : "复制正文"}</button>
               </div>
@@ -324,10 +390,21 @@ export default function MomentsStandalonePage() {
                   <button onClick={() => copyText("chat", material.chat)}><Clipboard size={15} />{copied === "chat" ? "已复制" : "复制私聊"}</button>
                 </div>
               </div>
+              <div className="quality-list">
+                {material.quality.map((item) => (
+                  <span key={item}><Check size={14} />{item}</span>
+                ))}
+              </div>
               <div className="asset compact">
                 <span>评论引导</span>
                 <p>{material.comment}</p>
                 <button onClick={() => copyText("comment", material.comment)}><Clipboard size={15} />{copied === "comment" ? "已复制" : "复制评论"}</button>
+              </div>
+              <div className="asset">
+                <span>二次延展</span>
+                <ul className="extension-list">
+                  {material.extensions.map((item) => <li key={item}>{item}</li>)}
+                </ul>
               </div>
               <div className="actions">
                 <button onClick={saveArchive}><Save size={15} />存到本机</button>
