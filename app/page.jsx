@@ -113,6 +113,42 @@ function loadJson(key, fallback) {
   }
 }
 
+function wrapCanvasText(ctx, text, maxWidth) {
+  const chars = Array.from(text);
+  const lines = [];
+  let line = "";
+  chars.forEach((char) => {
+    const testLine = `${line}${char}`;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = char;
+    } else {
+      line = testLine;
+    }
+  });
+  if (line) lines.push(line);
+  return lines;
+}
+
+function drawRoundRect(ctx, x, y, width, height, radius) {
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, radius);
+  ctx.arcTo(x + width, y + height, x, y + height, radius);
+  ctx.arcTo(x, y + height, x, y, radius);
+  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.closePath();
+}
+
+function loadLogo() {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = "/assets/shenxue-family-logo.png";
+  });
+}
+
 function buildMaterial(topic, slot, tone, customText) {
   const cue = customText.trim() || `今天看到和「${topic.hot}」有关的讨论。`;
   const opening = {
@@ -170,6 +206,14 @@ function buildMaterial(topic, slot, tone, customText) {
     },
     post,
     variants,
+    cardData: {
+      title,
+      subtitle: "先看家庭责任，再看现金流，再看已有安排",
+      modules: topic.visualModules,
+      insight: topic.insight,
+      question: topic.question,
+      footer: "内容仅作家庭规划思路参考，不构成具体产品建议。"
+    },
     card: `主标题：${title}\n副标题：先看家庭责任，再看现金流，再看已有安排\n画面结构：${topic.visualModules.join(" / ")}\n视觉要求：白底留白，蓝绿主色，金色只做重点提示，右下角放申学 Family logo。\n底部小字：内容仅作家庭规划思路参考，不构成具体产品建议。`,
     comment: `你觉得${topic.title}最容易被忽略的是钱、时间，还是家庭沟通？`,
     chat: `您好，我今天整理了一个关于「${topic.title}」的小盘点。它不涉及具体产品，主要是帮助家庭先看清责任、现金流和已有安排。您有空的话，可以先从这个问题开始：${topic.question}`,
@@ -242,6 +286,8 @@ export default function MomentsStandalonePage() {
   const [archive, setArchive] = useState(() => loadJson(storageKeys.archive, []));
   const [checklist, setChecklist] = useState(() => loadJson(checklistKey, {}));
   const [copied, setCopied] = useState("");
+  const [cardImage, setCardImage] = useState("");
+  const [renderingCard, setRenderingCard] = useState(false);
 
   useEffect(() => {
     window.localStorage.setItem(storageKeys.archive, JSON.stringify(archive));
@@ -264,6 +310,7 @@ export default function MomentsStandalonePage() {
 
   const generate = () => {
     setMaterial(buildMaterial(topic, slot, tone, customText));
+    setCardImage("");
     setCopied("");
   };
 
@@ -286,6 +333,123 @@ export default function MomentsStandalonePage() {
     anchor.download = `申学朋友圈素材-${material.topic}-${slot.time.replace(":", "")}.md`;
     anchor.click();
     URL.revokeObjectURL(url);
+  };
+
+  const generateCardImage = async () => {
+    if (!material) return;
+    setRenderingCard(true);
+    try {
+      const canvas = document.createElement("canvas");
+      canvas.width = 1080;
+      canvas.height = 1440;
+      const ctx = canvas.getContext("2d");
+      const logo = await loadLogo();
+      const data = material.cardData || {
+        title: material.title,
+        subtitle: "先看家庭责任，再看现金流，再看已有安排",
+        modules: ["家庭责任", "现金流", "已有安排"],
+        insight: material.strategy.insight,
+        question: "先把家庭问题看清楚，再做下一步选择。",
+        footer: "内容仅作家庭规划思路参考，不构成具体产品建议。"
+      };
+
+      ctx.fillStyle = "#f7fbfb";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const gradient = ctx.createLinearGradient(0, 0, 1080, 0);
+      gradient.addColorStop(0, "#0b8f8f");
+      gradient.addColorStop(1, "#073f86");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, 1080, 24);
+
+      ctx.fillStyle = "rgba(11, 143, 143, 0.08)";
+      ctx.beginPath();
+      ctx.arc(930, 180, 270, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(219, 168, 60, 0.14)";
+      ctx.beginPath();
+      ctx.arc(124, 1210, 330, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.drawImage(logo, 74, 68, 138, 138);
+      ctx.fillStyle = "#073f86";
+      ctx.font = "700 34px Microsoft YaHei, PingFang SC, Arial";
+      ctx.fillText("申学 Family", 236, 118);
+      ctx.fillStyle = "#13856f";
+      ctx.font = "500 24px Microsoft YaHei, PingFang SC, Arial";
+      ctx.fillText("学习成长 · 守护家庭 · 规划未来", 236, 160);
+
+      ctx.fillStyle = "#dba83c";
+      ctx.font = "800 24px Microsoft YaHei, PingFang SC, Arial";
+      ctx.fillText(`${material.slot} · 朋友圈知识卡`, 74, 286);
+
+      ctx.fillStyle = "#10243f";
+      ctx.font = "800 64px Microsoft YaHei, PingFang SC, Arial";
+      let y = 380;
+      wrapCanvasText(ctx, data.title, 860).slice(0, 3).forEach((line) => {
+        ctx.fillText(line, 74, y);
+        y += 78;
+      });
+
+      ctx.fillStyle = "#667085";
+      ctx.font = "500 32px Microsoft YaHei, PingFang SC, Arial";
+      wrapCanvasText(ctx, data.subtitle, 880).slice(0, 2).forEach((line) => {
+        ctx.fillText(line, 76, y + 12);
+        y += 48;
+      });
+
+      y += 42;
+      data.modules.slice(0, 3).forEach((item, index) => {
+        const boxY = y + index * 132;
+        drawRoundRect(ctx, 74, boxY, 932, 100, 18);
+        ctx.fillStyle = index === 1 ? "#eef5ff" : "#eef9f7";
+        ctx.fill();
+        ctx.fillStyle = "#dba83c";
+        ctx.font = "900 30px Microsoft YaHei, PingFang SC, Arial";
+        ctx.fillText(`0${index + 1}`, 112, boxY + 62);
+        ctx.fillStyle = "#10243f";
+        ctx.font = "700 34px Microsoft YaHei, PingFang SC, Arial";
+        ctx.fillText(item, 188, boxY + 62);
+      });
+
+      y += 440;
+      drawRoundRect(ctx, 74, y, 932, 230, 20);
+      ctx.fillStyle = "#ffffff";
+      ctx.fill();
+      ctx.strokeStyle = "#d7e2e4";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = "#0b8f8f";
+      ctx.font = "800 26px Microsoft YaHei, PingFang SC, Arial";
+      ctx.fillText("今天先问一个问题", 112, y + 58);
+      ctx.fillStyle = "#10243f";
+      ctx.font = "600 34px Microsoft YaHei, PingFang SC, Arial";
+      let questionY = y + 116;
+      wrapCanvasText(ctx, data.question, 820).slice(0, 3).forEach((line) => {
+        ctx.fillText(line, 112, questionY);
+        questionY += 48;
+      });
+
+      ctx.fillStyle = "#667085";
+      ctx.font = "500 24px Microsoft YaHei, PingFang SC, Arial";
+      wrapCanvasText(ctx, data.footer, 760).slice(0, 2).forEach((line, index) => {
+        ctx.fillText(line, 74, 1334 + index * 34);
+      });
+      ctx.drawImage(logo, 878, 1272, 112, 112);
+
+      setCardImage(canvas.toDataURL("image/png"));
+    } finally {
+      setRenderingCard(false);
+    }
+  };
+
+  const downloadCardImage = () => {
+    if (!cardImage || !material) return;
+    const anchor = document.createElement("a");
+    anchor.href = cardImage;
+    anchor.download = `申学朋友圈配图-${material.topic}-${slot.time.replace(":", "")}.png`;
+    anchor.click();
   };
 
   const clearArchive = () => {
@@ -452,7 +616,15 @@ export default function MomentsStandalonePage() {
                 <div>
                   <span>配图方向</span>
                   <p>{material.card}</p>
-                  <button onClick={() => copyText("card", material.card)}><Clipboard size={15} />{copied === "card" ? "已复制" : "复制配图"}</button>
+                  <div className="card-tools">
+                    <button onClick={() => copyText("card", material.card)}><Clipboard size={15} />{copied === "card" ? "已复制" : "复制提示词"}</button>
+                    <button onClick={generateCardImage}><Sparkles size={15} />{renderingCard ? "生成中" : "生成图片"}</button>
+                    {cardImage ? <button onClick={downloadCardImage}><Download size={15} />下载图片</button> : null}
+                  </div>
+                  {cardImage ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className="card-preview" src={cardImage} alt="生成的朋友圈配图" />
+                  ) : null}
                 </div>
                 <div>
                   <span>私聊承接</span>

@@ -459,6 +459,36 @@ button {
   background: var(--teal);
 }
 
+.card-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.card-tools button {
+  margin-top: 0;
+}
+
+.card-tools button:nth-child(2) {
+  background: var(--blue);
+}
+
+.card-tools button:nth-child(3) {
+  background: var(--gold);
+  color: #132238;
+}
+
+.card-preview {
+  display: block;
+  width: min(100%, 260px);
+  margin-top: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 12px 34px rgba(16, 36, 63, 0.12);
+}
+
 .variant-board {
   margin-top: 12px;
   border: 1px solid var(--line);
