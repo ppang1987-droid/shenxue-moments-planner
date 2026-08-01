@@ -224,12 +224,14 @@ button {
   font-weight: 800;
 }
 
-.topic-grid {
+.topic-grid,
+.trend-list {
   display: grid;
   gap: 10px;
 }
 
 .topic-grid button,
+.trend-list button,
 .audience-grid button,
 .segmented button,
 .sample-list button {
@@ -245,6 +247,82 @@ button {
   text-align: left;
 }
 
+.source-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.source-head .section-label {
+  margin-bottom: 4px;
+}
+
+.source-head span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.source-head button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbfefe;
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.source-head button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.trend-list {
+  max-height: 390px;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.trend-list button {
+  min-height: 104px;
+  padding: 13px;
+  text-align: left;
+}
+
+.trend-list button.active {
+  border-color: var(--teal);
+  background: #eaf8f5;
+  box-shadow: inset 4px 0 0 var(--green);
+}
+
+.trend-list strong,
+.trend-list span,
+.trend-list small {
+  display: block;
+}
+
+.trend-list strong {
+  line-height: 1.45;
+}
+
+.trend-list span {
+  margin-top: 5px;
+}
+
+.trend-list small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+}
+
 .topic-grid button.active {
   border-color: var(--teal);
   background: #eaf8f5;
@@ -257,6 +335,7 @@ button {
 }
 
 .topic-grid span,
+.trend-list span,
 .audience-grid span,
 .manual span,
 .asset span,
@@ -399,7 +478,7 @@ button {
 
 .brief-grid {
   display: grid;
-  grid-template-columns: 0.9fr 1.25fr 1fr;
+  grid-template-columns: 0.85fr 0.95fr 1.25fr 1fr;
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -426,6 +505,15 @@ button {
   margin-top: 8px;
   font-size: 14px;
   line-height: 1.65;
+}
+
+.brief-grid a {
+  display: inline-flex;
+  margin-top: 8px;
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 900;
+  text-decoration: none;
 }
 
 .asset {

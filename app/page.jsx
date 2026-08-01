@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   CalendarCheck,
   Check,
   Clipboard,
   Download,
+  ExternalLink,
   FileText,
-  Link,
+  RefreshCw,
   Save,
   Sparkles,
   Trash2
@@ -19,7 +20,7 @@ const storageKeys = {
   checklist: "shenxue-moments-checklist-v2"
 };
 
-const topics = [
+const topicProfiles = [
   {
     id: "pension",
     title: "养老与长期现金流",
@@ -90,10 +91,30 @@ const audiences = [
 ];
 
 const trendExamples = [
-  "今天刷到一个讨论：很多家庭开始重新算父母养老和自己退休的现金流，焦点不是缺不缺钱，而是未来十年哪些支出一定会发生。",
-  "有个热帖说住院账单只是表面压力，真正难的是陪护时间、收入中断和康复期安排，这其实很适合转成家庭保障盘点。",
-  "最近升学预算讨论很多，大家不是单纯焦虑学费，而是发现培训、择校、生活半径和家庭现金流都绑在一起。",
-  "照护话题又热了。很多人说最难的不是孝不孝顺，而是事情突然发生时，家庭里没有提前说清楚分工。"
+  {
+    id: "sample-pension",
+    title: "很多家庭开始重新算父母养老和自己退休的现金流",
+    summary: "焦点不是缺不缺钱，而是未来十年哪些支出一定会发生。",
+    source: "示例参考",
+    channel: "manual",
+    url: ""
+  },
+  {
+    id: "sample-medical",
+    title: "住院账单之外，陪护时间和收入中断也进入家庭讨论",
+    summary: "这类讨论适合转成医疗支出、家庭照护和保障盘点。",
+    source: "示例参考",
+    channel: "manual",
+    url: ""
+  },
+  {
+    id: "sample-education",
+    title: "升学预算让父母重新看见教育支出的长期压力",
+    summary: "培训、择校、生活半径和家庭现金流弹性绑在一起。",
+    source: "示例参考",
+    channel: "manual",
+    url: ""
+  }
 ];
 
 const riskyWords = ["保证", "稳赚", "必赔", "最高收益", "翻倍", "无风险", "一定", "躺赚"];
@@ -149,8 +170,33 @@ function loadLogo() {
   });
 }
 
-function buildMaterial(topic, slot, tone, customText) {
-  const cue = customText.trim() || `今天看到和「${topic.hot}」有关的讨论。`;
+function trendText(trend) {
+  if (!trend) return "";
+  return [trend.title, trend.summary].filter(Boolean).join("：");
+}
+
+function sourceLabel(trend) {
+  if (!trend) return "手动导入";
+  return `${trend.source || "外部来源"}${trend.channel ? ` · ${trend.channel}` : ""}`;
+}
+
+function classifyTopic(referenceText) {
+  const text = referenceText || "";
+  const profile =
+    [
+      { index: 0, pattern: /(养老|退休|养老金|长寿|长期现金流|护理院|养老院)/ },
+      { index: 1, pattern: /(医疗|医保|住院|陪护|康复|健康|疾病|看病|医药)/ },
+      { index: 2, pattern: /(教育|升学|学费|孩子|培训|留学|学校|托育)/ },
+      { index: 3, pattern: /(照护|陪诊|老人|父母|子女责任|家庭分工|失能|护理)/ }
+    ].find((item) => item.pattern.test(text));
+
+  return topicProfiles[profile?.index ?? 0];
+}
+
+function buildMaterial(trend, slot, tone, customText) {
+  const reference = customText.trim() || trendText(trend);
+  const topic = classifyTopic(reference);
+  const cue = reference || `今天看到和「${topic.hot}」有关的讨论。`;
   const opening = {
     steady: "这类热点不太适合简单跟风，更适合拿来做一次家庭规划复盘。",
     warm: "我看到这类讨论时，第一反应不是焦虑，而是想起很多家庭平时不太会坐下来聊这件事。",
@@ -197,6 +243,12 @@ function buildMaterial(topic, slot, tone, customText) {
     topic: topic.title,
     slot: `${slot.time} ${slot.name}`,
     tone: tone.name,
+    source: {
+      title: trend?.title || "手动导入热点",
+      summary: trend?.summary || customText,
+      label: sourceLabel(trend),
+      url: trend?.url || ""
+    },
     title,
     strategy: {
       audience: topic.audience,
@@ -237,6 +289,9 @@ function materialMarkdown(material) {
 
 生成时间：${material.createdAt}
 语气：${material.tone}
+来源：${material.source?.label || "手动导入"}
+来源标题：${material.source?.title || ""}
+${material.source?.url ? `来源链接：${material.source.url}` : ""}
 
 ## 朋友圈正文
 
@@ -277,11 +332,14 @@ ${material.compliance.map((item) => `- ${item}`).join("\n")}
 
 export default function MomentsStandalonePage() {
   const checklistKey = `${storageKeys.checklist}-${todayKey()}`;
-  const [topicId, setTopicId] = useState("pension");
   const [slotId, setSlotId] = useState("morning");
   const [toneId, setToneId] = useState("steady");
   const [audienceId, setAudienceId] = useState("client");
   const [customText, setCustomText] = useState("");
+  const [trends, setTrends] = useState(trendExamples);
+  const [selectedTrendId, setSelectedTrendId] = useState(trendExamples[0].id);
+  const [trendStatus, setTrendStatus] = useState("idle");
+  const [trendMeta, setTrendMeta] = useState("");
   const [material, setMaterial] = useState(null);
   const [archive, setArchive] = useState(() => loadJson(storageKeys.archive, []));
   const [checklist, setChecklist] = useState(() => loadJson(checklistKey, {}));
@@ -297,7 +355,8 @@ export default function MomentsStandalonePage() {
     window.localStorage.setItem(checklistKey, JSON.stringify(checklist));
   }, [checklist, checklistKey]);
 
-  const topic = useMemo(() => topics.find((item) => item.id === topicId) || topics[0], [topicId]);
+  const selectedTrend = useMemo(() => trends.find((item) => item.id === selectedTrendId) || trends[0], [trends, selectedTrendId]);
+  const topic = useMemo(() => classifyTopic(customText || trendText(selectedTrend)), [customText, selectedTrend]);
   const slot = useMemo(() => slots.find((item) => item.id === slotId) || slots[0], [slotId]);
   const tone = useMemo(() => tones.find((item) => item.id === toneId) || tones[0], [toneId]);
   const audience = useMemo(() => audiences.find((item) => item.id === audienceId) || audiences[0], [audienceId]);
@@ -308,8 +367,37 @@ export default function MomentsStandalonePage() {
     return riskyWords.filter((word) => text.includes(word));
   }, [customText, material]);
 
+  const refreshTrends = useCallback(async () => {
+    setTrendStatus("loading");
+    try {
+      const response = await fetch(`/api/trends?ts=${Date.now()}`);
+      const data = await response.json();
+      const nextTrends = data.items?.length ? data.items : trendExamples;
+      setTrends(nextTrends);
+      setSelectedTrendId(nextTrends[0]?.id || "");
+      setTrendMeta(`${data.mode || "external"} · ${new Date(data.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`);
+      setTrendStatus("ready");
+    } catch {
+      setTrends(trendExamples);
+      setSelectedTrendId(trendExamples[0].id);
+      setTrendMeta("fallback");
+      setTrendStatus("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(refreshTrends, 0);
+    return () => window.clearTimeout(timer);
+  }, [refreshTrends]);
+
+  const handleTrendSelect = (item) => {
+    setSelectedTrendId(item.id);
+    setCustomText(trendText(item));
+    setCardImage("");
+  };
+
   const generate = () => {
-    setMaterial(buildMaterial(topic, slot, tone, customText));
+    setMaterial(buildMaterial(selectedTrend, slot, tone, customText));
     setCardImage("");
     setCopied("");
   };
@@ -508,12 +596,26 @@ export default function MomentsStandalonePage() {
             <strong>今日输入</strong>
           </div>
 
-          <div className="section-label">热点方向</div>
-          <div className="topic-grid">
-            {topics.map((item) => (
-              <button className={item.id === topicId ? "active" : ""} key={item.id} onClick={() => setTopicId(item.id)}>
+          <div className="source-head">
+            <div>
+              <div className="section-label">外部选题参考</div>
+              <span>{trendMeta || "GDELT / Tavily / 手动导入"}</span>
+            </div>
+            <button onClick={refreshTrends} disabled={trendStatus === "loading"}>
+              <RefreshCw size={15} />
+              {trendStatus === "loading" ? "刷新中" : "刷新"}
+            </button>
+          </div>
+
+          <div className="trend-list">
+            {trends.map((item) => (
+              <button className={item.id === selectedTrendId ? "active" : ""} key={item.id} onClick={() => handleTrendSelect(item)}>
                 <strong>{item.title}</strong>
-                <span>{item.hot}</span>
+                <span>{item.summary}</span>
+                <small>
+                  {sourceLabel(item)}
+                  {item.url ? <ExternalLink size={12} /> : null}
+                </small>
               </button>
             ))}
           </div>
@@ -542,15 +644,6 @@ export default function MomentsStandalonePage() {
             <textarea value={customText} onChange={(event) => setCustomText(event.target.value)} placeholder="粘贴微博、知乎、抖音、小红书或新闻里的热点摘要..." />
           </label>
 
-          <div className="sample-list">
-            {trendExamples.map((item) => (
-              <button key={item} onClick={() => setCustomText(item)}>
-                <Link size={14} />
-                {item}
-              </button>
-            ))}
-          </div>
-
           <button className="primary" onClick={generate}>
             <Sparkles size={17} />
             生成 {slot.time} {audience.name}
@@ -573,6 +666,11 @@ export default function MomentsStandalonePage() {
           {material ? (
             <>
               <div className="brief-grid">
+                <article>
+                  <span>来源参考</span>
+                  <strong>{material.source.label}</strong>
+                  {material.source.url ? <a href={material.source.url} target="_blank" rel="noreferrer">查看来源</a> : null}
+                </article>
                 <article>
                   <span>面向人群</span>
                   <strong>{material.strategy.audience}</strong>
@@ -655,9 +753,9 @@ export default function MomentsStandalonePage() {
             </>
           ) : (
             <div className="empty">
-              <strong>先选一个热点方向和发布时间</strong>
-              <span>{topic.angle}</span>
-              <small>页面不会请求外部 API，所以不会因为额度或接口超时卡住。</small>
+              <strong>先选一条外部参考或粘贴热点</strong>
+              <span>系统会自动判断它适合从「{topic.title}」切入。</span>
+              <small>当前来源优先走 GDELT 免费新闻源；配置 Tavily 后会叠加搜索结果。</small>
             </div>
           )}
         </section>
