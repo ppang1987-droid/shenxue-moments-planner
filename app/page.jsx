@@ -68,6 +68,18 @@ const topicProfiles = [
     question: "如果父母需要长期陪诊或照护，家庭里谁能出时间，谁能出钱，谁负责协调？",
     imageFocus: "家庭分工图、照护责任、沟通清单",
     visualModules: ["照护分工表", "家庭沟通问题", "应急联系人清单"]
+  },
+  {
+    id: "family-finance",
+    title: "家庭财务与消费决策",
+    hot: "消费习惯、家庭预算、现金流管理",
+    audience: "关注日常支出、家庭预算和消费习惯的家庭",
+    angle: "把社会热点转成一次家庭消费和现金流复盘。",
+    insight: "很多消费问题表面是某个产品或平台，背后其实是家庭现金流、判断力和支出边界。",
+    misread: "只骂某个现象，容易错过更重要的问题：家里的钱是怎么被一点点花出去的。",
+    question: "家里有哪些支出看起来不大，但长期累积后会影响现金流？",
+    imageFocus: "消费清单、现金流边界、家庭预算复盘",
+    visualModules: ["日常支出清单", "现金流边界", "家庭复盘问题"]
   }
 ];
 
@@ -187,14 +199,18 @@ function classifyTopic(referenceText) {
       { index: 0, pattern: /(养老|退休|养老金|长寿|长期现金流|护理院|养老院)/ },
       { index: 1, pattern: /(医疗|医保|住院|陪护|康复|健康|疾病|看病|医药)/ },
       { index: 2, pattern: /(教育|升学|学费|孩子|培训|留学|学校|托育)/ },
-      { index: 3, pattern: /(照护|陪诊|老人|父母|子女责任|家庭分工|失能|护理)/ }
+      { index: 3, pattern: /(照护|陪诊|老人|父母|子女责任|家庭分工|失能|护理)/ },
+      { index: 4, pattern: /(消费|花钱|钱|支付|游戏|充值|贷款|负债|账单|预算|现金流|平台|手机|网购)/ }
     ].find((item) => item.pattern.test(text));
 
-  return topicProfiles[profile?.index ?? 0];
+  return topicProfiles[profile?.index ?? 4];
 }
 
 function buildMaterial(trend, slot, tone, customText) {
-  const reference = customText.trim() || trendText(trend);
+  const manualText = customText.trim();
+  const selectedText = trendText(trend);
+  const isManualSource = Boolean(manualText && manualText !== selectedText);
+  const reference = manualText || selectedText;
   const topic = classifyTopic(reference);
   const cue = reference || `今天看到和「${topic.hot}」有关的讨论。`;
   const opening = {
@@ -244,10 +260,10 @@ function buildMaterial(trend, slot, tone, customText) {
     slot: `${slot.time} ${slot.name}`,
     tone: tone.name,
     source: {
-      title: trend?.title || "手动导入热点",
-      summary: trend?.summary || customText,
-      label: sourceLabel(trend),
-      url: trend?.url || ""
+      title: isManualSource ? "手动导入热点" : trend?.title || "手动导入热点",
+      summary: isManualSource ? manualText : trend?.summary || customText,
+      label: isManualSource ? "手动导入" : sourceLabel(trend),
+      url: isManualSource ? "" : trend?.url || ""
     },
     title,
     strategy: {
@@ -390,10 +406,32 @@ export default function MomentsStandalonePage() {
     return () => window.clearTimeout(timer);
   }, [refreshTrends]);
 
+  const syncMaterial = (nextTrend, nextSlot, nextTone, nextText) => {
+    setMaterial((current) => (current ? buildMaterial(nextTrend, nextSlot, nextTone, nextText) : current));
+    setCardImage("");
+    setCopied("");
+  };
+
   const handleTrendSelect = (item) => {
     setSelectedTrendId(item.id);
-    setCustomText(trendText(item));
-    setCardImage("");
+    const nextText = trendText(item);
+    setCustomText(nextText);
+    syncMaterial(item, slot, tone, nextText);
+  };
+
+  const handleTextChange = (value) => {
+    setCustomText(value);
+    syncMaterial(selectedTrend, slot, tone, value);
+  };
+
+  const handleSlotSelect = (item) => {
+    setSlotId(item.id);
+    syncMaterial(selectedTrend, item, tone, customText);
+  };
+
+  const handleToneSelect = (item) => {
+    setToneId(item.id);
+    syncMaterial(selectedTrend, slot, item, customText);
   };
 
   const generate = () => {
@@ -565,7 +603,7 @@ export default function MomentsStandalonePage() {
         </div>
         <div className="rhythm">
           {slots.map((item) => (
-            <button className={slotId === item.id ? "rhythm-card active" : "rhythm-card"} key={item.id} onClick={() => setSlotId(item.id)}>
+            <button className={slotId === item.id ? "rhythm-card active" : "rhythm-card"} key={item.id} onClick={() => handleSlotSelect(item)}>
               <span>{item.time}</span>
               <strong>{item.name}</strong>
               <p>{item.target} · {item.length}</p>
@@ -623,7 +661,7 @@ export default function MomentsStandalonePage() {
           <div className="section-label">语气模式</div>
           <div className="segmented">
             {tones.map((item) => (
-              <button className={toneId === item.id ? "active" : ""} key={item.id} onClick={() => setToneId(item.id)} title={item.hint}>
+              <button className={toneId === item.id ? "active" : ""} key={item.id} onClick={() => handleToneSelect(item)} title={item.hint}>
                 {item.name}
               </button>
             ))}
@@ -641,7 +679,7 @@ export default function MomentsStandalonePage() {
 
           <label className="manual">
             <span>手动导入热点</span>
-            <textarea value={customText} onChange={(event) => setCustomText(event.target.value)} placeholder="粘贴微博、知乎、抖音、小红书或新闻里的热点摘要..." />
+            <textarea value={customText} onChange={(event) => handleTextChange(event.target.value)} placeholder="粘贴微博、知乎、抖音、小红书或新闻里的热点摘要..." />
           </label>
 
           <button className="primary" onClick={generate}>
