@@ -19,7 +19,8 @@ import {
 
 const storageKeys = {
   archive: "shenxue-moments-archive-v2",
-  checklist: "shenxue-moments-checklist-v2"
+  checklist: "shenxue-moments-checklist-v2",
+  imageAccess: "shenxue-moments-image-access"
 };
 
 const topicProfiles = [
@@ -256,6 +257,61 @@ function loadLogo() {
   });
 }
 
+function loadImageSource(src) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+async function composeBrandedAiImage(imageSource, material) {
+  const [image, logo] = await Promise.all([loadImageSource(imageSource), loadLogo()]);
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 1536;
+  const ctx = canvas.getContext("2d");
+
+  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+  const overlay = ctx.createLinearGradient(0, 0, 0, 500);
+  overlay.addColorStop(0, "rgba(247, 251, 251, 0.98)");
+  overlay.addColorStop(0.72, "rgba(247, 251, 251, 0.9)");
+  overlay.addColorStop(1, "rgba(247, 251, 251, 0)");
+  ctx.fillStyle = overlay;
+  ctx.fillRect(0, 0, 1024, 520);
+
+  ctx.drawImage(logo, 64, 52, 104, 104);
+  ctx.fillStyle = "#073f86";
+  ctx.font = "700 27px Microsoft YaHei, PingFang SC, Arial";
+  ctx.fillText("申学 Family", 188, 94);
+  ctx.fillStyle = "#13856f";
+  ctx.font = "500 19px Microsoft YaHei, PingFang SC, Arial";
+  ctx.fillText("学习成长 · 守护家庭 · 规划未来", 188, 128);
+
+  ctx.fillStyle = "#d59c22";
+  ctx.font = "800 20px Microsoft YaHei, PingFang SC, Arial";
+  ctx.fillText(`${material.slot} · 家庭规划科普`, 64, 210);
+
+  ctx.fillStyle = "#10243f";
+  ctx.font = "800 53px Microsoft YaHei, PingFang SC, Arial";
+  let titleY = 286;
+  wrapCanvasText(ctx, material.title, 890).slice(0, 3).forEach((line) => {
+    ctx.fillText(line, 64, titleY);
+    titleY += 66;
+  });
+
+  ctx.fillStyle = "rgba(7, 37, 63, 0.78)";
+  ctx.fillRect(0, 1424, 1024, 112);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = "500 20px Microsoft YaHei, PingFang SC, Arial";
+  ctx.fillText("内容仅作家庭规划思路参考，不构成具体产品建议。", 64, 1487);
+  ctx.drawImage(logo, 898, 1438, 72, 72);
+
+  return canvas.toDataURL("image/jpeg", 0.9);
+}
+
 function trendText(trend) {
   if (!trend) return "";
   return [trend.title, trend.summary].filter(Boolean).join("：");
@@ -453,7 +509,11 @@ export default function MomentsStandalonePage() {
   const [checklist, setChecklist] = useState(() => loadJson(checklistKey, {}));
   const [copied, setCopied] = useState("");
   const [cardImage, setCardImage] = useState("");
+  const [cardImageKind, setCardImageKind] = useState("card");
   const [renderingCard, setRenderingCard] = useState(false);
+  const [renderingAiImage, setRenderingAiImage] = useState(false);
+  const [aiImageError, setAiImageError] = useState("");
+  const [imageAccessCode, setImageAccessCode] = useState("");
   const [now, setNow] = useState(null);
 
   useEffect(() => {
@@ -515,6 +575,7 @@ export default function MomentsStandalonePage() {
   const syncMaterial = (nextTrend, nextSlot, nextTone, nextText) => {
     setMaterial((current) => (current ? buildMaterial(nextTrend, nextSlot, nextTone, nextText) : current));
     setCardImage("");
+    setAiImageError("");
     setCopied("");
   };
 
@@ -543,6 +604,7 @@ export default function MomentsStandalonePage() {
   const generate = () => {
     setMaterial(buildMaterial(selectedTrend, slot, tone, customText));
     setCardImage("");
+    setAiImageError("");
     setCopied("");
   };
 
@@ -671,8 +733,51 @@ export default function MomentsStandalonePage() {
       ctx.drawImage(logo, 878, 1272, 112, 112);
 
       setCardImage(canvas.toDataURL("image/png"));
+      setCardImageKind("card");
+      setAiImageError("");
     } finally {
       setRenderingCard(false);
+    }
+  };
+
+  const generateAiImage = async () => {
+    if (!material || renderingAiImage) return;
+    const accessCode = imageAccessCode.trim() || window.localStorage.getItem(storageKeys.imageAccess)?.trim() || "";
+    if (!accessCode) {
+      setAiImageError("请先填写 AI 生图口令。口令只保存在当前浏览器。");
+      return;
+    }
+
+    window.localStorage.setItem(storageKeys.imageAccess, accessCode);
+    setRenderingAiImage(true);
+    setAiImageError("");
+
+    try {
+      const data = material.cardData || {};
+      const response = await fetch("/api/images/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-image-access-code": accessCode
+        },
+        body: JSON.stringify({
+          title: material.title,
+          subtitle: data.subtitle,
+          modules: data.modules,
+          insight: data.insight || material.strategy.insight,
+          question: data.question
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "AI 图片生成失败，请稍后重试。");
+
+      const brandedImage = await composeBrandedAiImage(result.image, material);
+      setCardImage(brandedImage);
+      setCardImageKind("ai");
+    } catch (error) {
+      setAiImageError(error instanceof Error ? error.message : "AI 图片生成失败，请稍后重试。");
+    } finally {
+      setRenderingAiImage(false);
     }
   };
 
@@ -680,7 +785,8 @@ export default function MomentsStandalonePage() {
     if (!cardImage || !material) return;
     const anchor = document.createElement("a");
     anchor.href = cardImage;
-    anchor.download = `申学朋友圈配图-${material.topic}-${slot.time.replace(":", "")}.png`;
+    const extension = cardImageKind === "ai" ? "jpg" : "png";
+    anchor.download = `申学朋友圈配图-${material.topic}-${slot.time.replace(":", "")}.${extension}`;
     anchor.click();
   };
 
@@ -892,13 +998,23 @@ export default function MomentsStandalonePage() {
                   <span>配图方向</span>
                   <p>{material.card}</p>
                   <div className="card-tools">
-                    <button onClick={() => copyText("card", material.card)}><Clipboard size={15} />{copied === "card" ? "已复制" : "复制提示词"}</button>
-                    <button onClick={generateCardImage}><Sparkles size={15} />{renderingCard ? "生成中" : "生成图片"}</button>
-                    {cardImage ? <button onClick={downloadCardImage}><Download size={15} />下载图片</button> : null}
+                    <button className="copy-prompt" onClick={() => copyText("card", material.card)}><Clipboard size={15} />{copied === "card" ? "已复制" : "复制提示词"}</button>
+                    <button className="brand-card" onClick={generateCardImage} disabled={renderingCard || renderingAiImage}><FileText size={15} />{renderingCard ? "生成中" : "品牌知识卡"}</button>
+                    <button className="ai-image" onClick={generateAiImage} disabled={renderingCard || renderingAiImage}><Sparkles size={15} />{renderingAiImage ? "AI 绘制中" : "AI 创意配图"}</button>
+                    {cardImage ? <button className="download-image" onClick={downloadCardImage}><Download size={15} />下载图片</button> : null}
                   </div>
+                  <label className="ai-access">
+                    <span>AI 生图口令</span>
+                    <input type="password" value={imageAccessCode} onChange={(event) => setImageAccessCode(event.target.value)} placeholder="首次使用时填写" autoComplete="off" />
+                    <small>口令只保存在当前浏览器；AI 配图会消耗 OpenAI 额度。</small>
+                  </label>
+                  {aiImageError ? <div className="image-error"><AlertTriangle size={15} />{aiImageError}</div> : null}
                   {cardImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img className="card-preview" src={cardImage} alt="生成的朋友圈配图" />
+                    <figure className="card-preview-wrap">
+                      <figcaption>{cardImageKind === "ai" ? "AI 创意配图 · 已完成品牌落版" : "申学品牌知识卡"}</figcaption>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img className="card-preview" src={cardImage} alt="生成的朋友圈配图" />
+                    </figure>
                   ) : null}
                 </div>
                 <div>
