@@ -24,15 +24,6 @@ const fallbackTrends = [
     url: "",
     publishedAt: "",
     channel: "fallback"
-  },
-  {
-    id: "fallback-education",
-    title: "教育成本上升让父母重新审视家庭预算",
-    summary: "教育规划不只是学费，还包括培训、择校、生活半径和家庭现金流弹性。",
-    source: "内置兜底",
-    url: "",
-    publishedAt: "",
-    channel: "fallback"
   }
 ];
 
@@ -58,6 +49,13 @@ function dedupe(items) {
     seen.add(key);
     return Boolean(item.title);
   });
+}
+
+function isRelevantChineseTopic(item) {
+  const text = `${item.title || ""} ${item.summary || ""}`;
+  const hasChinese = /[\u4e00-\u9fff]/.test(text);
+  const matchesPlanningTopic = /(家庭|养老|退休|医疗|医保|健康|教育|升学|照护|陪护|现金流|预算|保障|保险|消费|支出)/.test(text);
+  return hasChinese && matchesPlanningTopic;
 }
 
 async function fetchGoogleNews() {
@@ -152,20 +150,21 @@ async function fetchGdelt() {
 export async function GET() {
   try {
     const [tavilyItems, googleNewsItems, gdeltItems] = await Promise.allSettled([fetchTavily(), fetchGoogleNews(), fetchGdelt()]);
-    const items = dedupe([
+    const liveItems = dedupe([
       ...(tavilyItems.status === "fulfilled" ? tavilyItems.value : []),
       ...(googleNewsItems.status === "fulfilled" ? googleNewsItems.value : []),
       ...(gdeltItems.status === "fulfilled" ? gdeltItems.value : [])
-    ]).slice(0, 12);
+    ]).filter(isRelevantChineseTopic).slice(0, 2);
+    const items = dedupe([...liveItems, ...fallbackTrends]).slice(0, 2);
 
-    const mode = items.length
+    const mode = liveItems.length
       ? (process.env.TAVILY_API_KEY ? "tavily+google-news+gdelt" : "google-news+gdelt")
       : "fallback";
 
     return Response.json({
       updatedAt: new Date().toISOString(),
       mode,
-      items: items.length ? items : fallbackTrends
+      items
     });
   } catch (error) {
     return Response.json({

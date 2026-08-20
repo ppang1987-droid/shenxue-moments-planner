@@ -322,15 +322,63 @@ button {
 }
 
 .trend-list {
-  max-height: 390px;
+  max-height: 250px;
   overflow: auto;
   padding-right: 3px;
 }
 
 .trend-list button {
-  min-height: 104px;
+  min-height: 112px;
   padding: 13px;
   text-align: left;
+}
+
+.knowledge-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.knowledge-head svg {
+  flex: 0 0 auto;
+  color: var(--teal);
+}
+
+.knowledge-head .section-label {
+  margin: 0 0 3px;
+}
+
+.knowledge-head span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.knowledge-list {
+  max-height: 360px;
+  margin-top: 8px;
+}
+
+.source-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 7px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.source-badge.external {
+  background: #fff6df;
+  color: #8a5a00;
+}
+
+.source-badge.knowledge {
+  background: #e3f5f0;
+  color: #087466;
 }
 
 .trend-list button.active {

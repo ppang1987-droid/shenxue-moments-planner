@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
+  BookOpen,
   CalendarCheck,
   Check,
   Clipboard,
@@ -144,13 +145,53 @@ const trendExamples = [
     source: "示例参考",
     channel: "manual",
     url: ""
+  }
+];
+
+const knowledgeTopics = [
+  {
+    id: "knowledge-cashflow",
+    title: "家庭现金流安全垫，先算哪些钱不能停",
+    summary: "把房贷、生活、教育、父母支持和医疗备用金放在一张表里，才能看见家庭真正的承压能力。",
+    source: "申学科普知识库",
+    channel: "家庭财务体检",
+    kind: "knowledge",
+    url: ""
   },
   {
-    id: "sample-education",
-    title: "升学预算让父母重新看见教育支出的长期压力",
-    summary: "培训、择校、生活半径和家庭现金流弹性绑在一起。",
-    source: "示例参考",
-    channel: "manual",
+    id: "knowledge-policy-review",
+    title: "买过保险，不等于看清家庭保障结构",
+    summary: "科普梳理谁保了、保什么、保多久，以及不同情况发生时家庭现金流从哪里来。",
+    source: "申学科普知识库",
+    channel: "客户问题手记",
+    kind: "knowledge",
+    url: ""
+  },
+  {
+    id: "knowledge-education",
+    title: "教育规划先分清确定支出与弹性支出",
+    summary: "教育目标、使用时间和家庭现金流要一起看，为不同成长路径保留选择空间。",
+    source: "申学科普知识库",
+    channel: "教育规划",
+    kind: "knowledge",
+    url: ""
+  },
+  {
+    id: "knowledge-pension",
+    title: "养老准备先看未来 3-5 年的家庭责任",
+    summary: "父母医疗、长期照护、居住安排和自己的养老准备，需要按时间与责任人逐项梳理。",
+    source: "申学科普知识库",
+    channel: "养老现金流",
+    kind: "knowledge",
+    url: ""
+  },
+  {
+    id: "knowledge-care",
+    title: "家庭照护不只是出钱，还包括时间与协调",
+    summary: "陪诊、护理、费用、决策和情绪支持都需要提前讨论，减少突发情况中的临时冲突。",
+    source: "申学科普知识库",
+    channel: "家庭责任地图",
+    kind: "knowledge",
     url: ""
   }
 ];
@@ -230,7 +271,7 @@ function classifyTopic(referenceText) {
   const profile =
     [
       { index: 0, pattern: /(养老|退休|养老金|长寿|长期现金流|护理院|养老院)/ },
-      { index: 1, pattern: /(医疗|医保|住院|陪护|康复|健康|疾病|看病|医药)/ },
+      { index: 1, pattern: /(医疗|医保|住院|陪护|康复|健康|疾病|看病|医药|保险|保障|保单|理赔)/ },
       { index: 2, pattern: /(教育|升学|学费|孩子|培训|留学|学校|托育)/ },
       { index: 3, pattern: /(照护|陪诊|老人|父母|子女责任|家庭分工|失能|护理)/ },
       { index: 4, pattern: /(消费|花钱|钱|支付|游戏|充值|贷款|负债|账单|预算|现金流|平台|手机|网购)/ }
@@ -243,9 +284,12 @@ function buildMaterial(trend, slot, tone, customText) {
   const manualText = customText.trim();
   const selectedText = trendText(trend);
   const isManualSource = Boolean(manualText && manualText !== selectedText);
+  const isKnowledgeSource = !isManualSource && trend?.kind === "knowledge";
   const reference = manualText || selectedText;
   const topic = classifyTopic(reference);
-  const cue = reference || `今天看到和「${topic.hot}」有关的讨论。`;
+  const cue = isKnowledgeSource
+    ? `今天想从一个基础科普说起：${trend.title}。${trend.summary}`
+    : reference || `今天看到和「${topic.hot}」有关的讨论。`;
   const knowledge = topic.knowledge || [];
   const knowledgeLine = knowledge[0] || topic.insight;
   const knowledgeList = knowledge.map((item, index) => `${index + 1}. ${item}`).join("\n");
@@ -255,15 +299,19 @@ function buildMaterial(trend, slot, tone, customText) {
     warm: "我看到这类讨论时，第一反应不是焦虑，而是想起很多家庭平时不太会坐下来聊这件事。",
     short: "热点会过去，但家庭责任不会自动消失。"
   }[tone.id];
+  const sourceOpening = isKnowledgeSource
+    ? "这不是追热点，而是一个值得经常复习的家庭规划常识。"
+    : opening;
 
   const slotText = {
-    morning: `${cue}\n\n${opening}\n\n科普一点：${knowledgeLine}\n\n我更建议先问一个问题：${topic.question}\n\n把这个问题想清楚，再谈工具和方案，心里会稳很多。`,
+    morning: `${cue}\n\n${sourceOpening}\n\n科普一点：${knowledgeLine}\n\n我更建议先问一个问题：${topic.question}\n\n把这个问题想清楚，再谈工具和方案，心里会稳很多。`,
     noon: `${cue}\n\n午间可以先做一个小盘点：\n${knowledgeList}\n\n很多规划不是从买什么开始，而是从看清楚家庭结构开始。`,
     night: `${cue}\n\n今天复盘这个话题，我会把重点放在一个判断上：${topic.misread}\n\n补充两个基础认知：\n${knowledgeBrief}\n\n不急着下结论，先把问题讲清楚，已经是很重要的一步。`
   }[slot.id];
 
   const shortText = `${cue}\n\n科普一点：${knowledgeLine}\n\n先问自己一句：${topic.question}\n\n规划不制造焦虑，也不承诺结果，只帮助家庭把问题看清楚。`;
   const post = tone.id === "short" ? shortText : slotText;
+  const cardSubtitle = isKnowledgeSource ? "从申学科普知识库提炼，回到家庭真实场景" : "热点是参考，科普才是主体";
   const title = {
     morning: `${topic.title}，先问对问题`,
     noon: `${topic.title}的 3 个盘点动作`,
@@ -278,7 +326,7 @@ function buildMaterial(trend, slot, tone, customText) {
     peer: {
       label: "同业版",
       purpose: "适合建立专业判断，给同业看到方法感",
-      text: `${cue}\n\n这个选题的价值，不在于蹭热点，而在于把公众情绪转成家庭规划问题。\n\n科普拆解可以这样表达：\n${knowledgeList}\n\n${topic.misread}\n\n越是热点，越要回到家庭真实结构。`
+      text: `${cue}\n\n这个选题的价值，在于把大家关心的问题转成可以理解、可以讨论的家庭规划常识。\n\n科普拆解可以这样表达：\n${knowledgeList}\n\n${topic.misread}\n\n表达越具体，越要回到家庭真实结构。`
     },
     family: {
       label: "家庭聊天版",
@@ -288,7 +336,7 @@ function buildMaterial(trend, slot, tone, customText) {
     quote: {
       label: "金句版",
       purpose: "适合做封面主文案或短朋友圈",
-      text: `${topic.insight}\n\n热点提醒我们关注问题，科普帮助我们看清结构。\n\n先懂责任，再看现金流，最后看已有安排。`
+      text: `${topic.insight}\n\n信息提醒我们关注问题，科普帮助我们看清结构。\n\n先懂责任，再看现金流，最后看已有安排。`
     }
   };
 
@@ -300,6 +348,7 @@ function buildMaterial(trend, slot, tone, customText) {
       title: isManualSource ? "手动导入热点" : trend?.title || "手动导入热点",
       summary: isManualSource ? manualText : trend?.summary || customText,
       label: isManualSource ? "手动导入" : sourceLabel(trend),
+      kind: isManualSource ? "manual" : isKnowledgeSource ? "knowledge" : "external",
       url: isManualSource ? "" : trend?.url || ""
     },
     title,
@@ -321,7 +370,7 @@ function buildMaterial(trend, slot, tone, customText) {
       question: topic.question,
       footer: "内容仅作家庭规划思路参考，不构成具体产品建议。"
     },
-    card: `主标题：${title}\n副标题：热点是参考，科普才是主体\n科普信息：${knowledgeLine}\n画面结构：${topic.visualModules.join(" / ")}\n视觉要求：白底留白，蓝绿主色，金色只做重点提示，右下角放申学 Family logo。\n底部小字：内容仅作家庭规划思路参考，不构成具体产品建议。`,
+    card: `主标题：${title}\n副标题：${cardSubtitle}\n科普信息：${knowledgeLine}\n画面结构：${topic.visualModules.join(" / ")}\n视觉要求：白底留白，蓝绿主色，金色只做重点提示，右下角放申学 Family logo。\n底部小字：内容仅作家庭规划思路参考，不构成具体产品建议。`,
     comment: `你觉得${topic.title}最容易被忽略的是钱、时间，还是家庭沟通？`,
     chat: `您好，我今天整理了一个关于「${topic.title}」的小盘点。它不涉及具体产品，主要是帮助家庭先看清责任、现金流和已有安排。您有空的话，可以先从这个问题开始：${topic.question}`,
     extensions: [
@@ -396,7 +445,7 @@ export default function MomentsStandalonePage() {
   const [audienceId, setAudienceId] = useState("client");
   const [customText, setCustomText] = useState("");
   const [trends, setTrends] = useState(trendExamples);
-  const [selectedTrendId, setSelectedTrendId] = useState(trendExamples[0].id);
+  const [selectedTrendId, setSelectedTrendId] = useState(knowledgeTopics[0].id);
   const [trendStatus, setTrendStatus] = useState("idle");
   const [trendMeta, setTrendMeta] = useState("");
   const [material, setMaterial] = useState(null);
@@ -415,7 +464,11 @@ export default function MomentsStandalonePage() {
     window.localStorage.setItem(checklistKey, JSON.stringify(checklist));
   }, [checklist, checklistKey]);
 
-  const selectedTrend = useMemo(() => trends.find((item) => item.id === selectedTrendId) || trends[0], [trends, selectedTrendId]);
+  const selectableTopics = useMemo(() => [...trends, ...knowledgeTopics], [trends]);
+  const selectedTrend = useMemo(
+    () => selectableTopics.find((item) => item.id === selectedTrendId) || knowledgeTopics[0],
+    [selectableTopics, selectedTrendId]
+  );
   const topic = useMemo(() => classifyTopic(customText || trendText(selectedTrend)), [customText, selectedTrend]);
   const slot = useMemo(() => slots.find((item) => item.id === slotId) || slots[0], [slotId]);
   const tone = useMemo(() => tones.find((item) => item.id === toneId) || tones[0], [toneId]);
@@ -433,14 +486,12 @@ export default function MomentsStandalonePage() {
     try {
       const response = await fetch(`/api/trends?ts=${Date.now()}`);
       const data = await response.json();
-      const nextTrends = data.items?.length ? data.items : trendExamples;
+      const nextTrends = (data.items?.length ? data.items : trendExamples).slice(0, 2);
       setTrends(nextTrends);
-      setSelectedTrendId(nextTrends[0]?.id || "");
       setTrendMeta(`${data.mode || "external"} · ${new Date(data.updatedAt).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`);
       setTrendStatus("ready");
     } catch {
       setTrends(trendExamples);
-      setSelectedTrendId(trendExamples[0].id);
       setTrendMeta("fallback");
       setTrendStatus("error");
     }
@@ -653,7 +704,7 @@ export default function MomentsStandalonePage() {
         </div>
         <div className="hero-copy">
           <span className="eyebrow">DAILY MOMENTS PLANNER · {today}</span>
-          <h1>把今天的热点，转成可以安心发布的朋友圈素材。</h1>
+          <h1>把热点与科普，转成可以安心发布的朋友圈素材。</h1>
           <p>当前是独立稳定版：不依赖云端接口，先把选题、生成、复制、下载、存档和发布打卡跑顺。</p>
           <div className="live-clock" aria-label="当前时间">
             <Clock size={18} />
@@ -697,7 +748,7 @@ export default function MomentsStandalonePage() {
 
           <div className="source-head">
             <div>
-              <div className="section-label">外部选题参考</div>
+              <div className="section-label">外部选题参考 · 2 条</div>
               <span>{trendMeta || "GDELT / Tavily / 手动导入"}</span>
             </div>
             <button onClick={refreshTrends} disabled={trendStatus === "loading"}>
@@ -709,12 +760,32 @@ export default function MomentsStandalonePage() {
           <div className="trend-list">
             {trends.map((item) => (
               <button className={item.id === selectedTrendId ? "active" : ""} key={item.id} onClick={() => handleTrendSelect(item)}>
+                <em className="source-badge external">外部参考</em>
                 <strong>{item.title}</strong>
                 <span>{item.summary}</span>
                 <small>
                   {sourceLabel(item)}
                   {item.url ? <ExternalLink size={12} /> : null}
                 </small>
+              </button>
+            ))}
+          </div>
+
+          <div className="knowledge-head">
+            <BookOpen size={16} />
+            <div>
+              <div className="section-label">申学科普选题</div>
+              <span>从 Content OS 与家庭财务体检素材提炼</span>
+            </div>
+          </div>
+
+          <div className="trend-list knowledge-list">
+            {knowledgeTopics.map((item) => (
+              <button className={item.id === selectedTrendId ? "active" : ""} key={item.id} onClick={() => handleTrendSelect(item)}>
+                <em className="source-badge knowledge">知识库提炼</em>
+                <strong>{item.title}</strong>
+                <span>{item.summary}</span>
+                <small>{sourceLabel(item)}</small>
               </button>
             ))}
           </div>
@@ -859,8 +930,8 @@ export default function MomentsStandalonePage() {
             </>
           ) : (
             <div className="empty">
-              <strong>先选一条外部参考或粘贴热点</strong>
-              <span>系统会自动判断它适合从「{topic.title}」切入。</span>
+              <strong>先选一条外部参考或申学科普选题</strong>
+              <span>系统会自动判断它适合从「{topic.title}」切入，也可以手动粘贴热点。</span>
               <small>当前来源优先走 GDELT 免费新闻源；配置 Tavily 后会叠加搜索结果。</small>
             </div>
           )}
