@@ -1,5 +1,6 @@
 .env*
 !.env.production.example
+.vercel/
 .next/
 dist/
 node_modules/
