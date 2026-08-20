@@ -31,6 +31,11 @@ const topicProfiles = [
     insight: "养老不是某一个年龄点才开始的决定，而是一组长期支出的提前排序。",
     misread: "把养老规划理解成买一个产品，容易忽略医疗、照护、住房和子女支持这些真实支出。",
     question: "如果未来十年收入节奏变化，家里的固定责任谁来接住？",
+    knowledge: [
+      "养老规划先看现金流周期：日常生活费、医疗康复费、照护支出和家庭支持要分开看。",
+      "长期现金流不是只算一笔总账，而是看每年是否有稳定来源覆盖确定支出。",
+      "家庭讨论时可以先列出父母、自己、子女三类责任，再判断哪些责任需要提前安排。"
+    ],
     imageFocus: "现金流时间轴、家庭责任清单、长期规划",
     visualModules: ["家庭责任时间轴", "固定支出清单", "已有安排盘点"]
   },
@@ -43,6 +48,11 @@ const topicProfiles = [
     insight: "医疗风险最难的地方，不是某一张账单，而是它会同时影响现金流、照护时间和家庭分工。",
     misread: "只讨论报销比例，容易漏掉收入中断、异地照护和康复期支出。",
     question: "家里如果有人住院三个月，钱、时间和照护由谁分别承担？",
+    knowledge: [
+      "医疗支出可以拆成院内费用、院外康复、陪护交通和收入中断四部分。",
+      "家庭保障盘点不要只看有没有保单，也要看额度、范围、责任人和应急资金是否匹配。",
+      "健康管理和保障安排不是替代关系，前者降低发生概率，后者处理发生后的财务冲击。"
+    ],
     imageFocus: "三栏知识卡、保障盘点、家庭健康预算",
     visualModules: ["医疗费用分层", "照护时间表", "保障缺口提醒"]
   },
@@ -55,6 +65,11 @@ const topicProfiles = [
     insight: "教育规划的重点不是预测孩子会走哪条路，而是让家庭在不同选择前都有余地。",
     misread: "只盯着学费总额，容易低估培训、生活、择校、陪伴时间带来的连锁成本。",
     question: "孩子下一阶段最确定的支出是什么，最不确定的选择又是什么？",
+    knowledge: [
+      "教育金规划先区分确定支出和弹性支出，确定支出需要优先匹配稳定现金流。",
+      "升学预算不只是学费，还包括培训、交通、住宿、生活半径变化和父母陪伴成本。",
+      "好的教育预算要保留选择空间，不把家庭现金流全部压在单一路径上。"
+    ],
     imageFocus: "教育阶段地图、预算表、家庭目标",
     visualModules: ["教育阶段地图", "确定支出表", "弹性预算区"]
   },
@@ -67,6 +82,11 @@ const topicProfiles = [
     insight: "照护问题表面是时间安排，背后其实是钱、精力、情绪和家庭共识的再分配。",
     misread: "等事情发生再商量，往往会把本来可以分担的问题变成临时冲突。",
     question: "如果父母需要长期陪诊或照护，家庭里谁能出时间，谁能出钱，谁负责协调？",
+    knowledge: [
+      "照护责任通常包括陪诊、护理、决策、费用和情绪支持，不能只理解成谁去医院。",
+      "提前做家庭分工表，可以减少突发情况里的临时争执。",
+      "异地照护家庭要额外关注联系人、医院流程、备用资金和长期陪护资源。"
+    ],
     imageFocus: "家庭分工图、照护责任、沟通清单",
     visualModules: ["照护分工表", "家庭沟通问题", "应急联系人清单"]
   },
@@ -79,6 +99,11 @@ const topicProfiles = [
     insight: "很多消费问题表面是某个产品或平台，背后其实是家庭现金流、判断力和支出边界。",
     misread: "只骂某个现象，容易错过更重要的问题：家里的钱是怎么被一点点花出去的。",
     question: "家里有哪些支出看起来不大，但长期累积后会影响现金流？",
+    knowledge: [
+      "家庭预算不是限制生活，而是把必要支出、弹性支出和长期目标放在同一张表里看。",
+      "小额高频支出最容易被忽略，复盘时可以按月汇总，而不是只看单笔金额。",
+      "现金流管理的核心是保留余地：固定责任先安排，消费决策再排序。"
+    ],
     imageFocus: "消费清单、现金流边界、家庭预算复盘",
     visualModules: ["日常支出清单", "现金流边界", "家庭复盘问题"]
   }
@@ -131,7 +156,7 @@ const trendExamples = [
 ];
 
 const riskyWords = ["保证", "稳赚", "必赔", "最高收益", "翻倍", "无风险", "一定", "躺赚"];
-const qualityRules = ["有具体家庭场景", "有误区修正", "有可执行问题", "不做产品承诺"];
+const qualityRules = ["外部热点只做选题参考", "科普内容占主体", "有具体家庭场景", "不做产品承诺"];
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -221,6 +246,10 @@ function buildMaterial(trend, slot, tone, customText) {
   const reference = manualText || selectedText;
   const topic = classifyTopic(reference);
   const cue = reference || `今天看到和「${topic.hot}」有关的讨论。`;
+  const knowledge = topic.knowledge || [];
+  const knowledgeLine = knowledge[0] || topic.insight;
+  const knowledgeList = knowledge.map((item, index) => `${index + 1}. ${item}`).join("\n");
+  const knowledgeBrief = knowledge.slice(0, 2).join("\n");
   const opening = {
     steady: "这类热点不太适合简单跟风，更适合拿来做一次家庭规划复盘。",
     warm: "我看到这类讨论时，第一反应不是焦虑，而是想起很多家庭平时不太会坐下来聊这件事。",
@@ -228,12 +257,12 @@ function buildMaterial(trend, slot, tone, customText) {
   }[tone.id];
 
   const slotText = {
-    morning: `${cue}\n\n${opening}\n\n${topic.insight}\n\n我更建议先问一个问题：${topic.question}\n\n把这个问题想清楚，再谈工具和方案，心里会稳很多。`,
-    noon: `${cue}\n\n午间可以先做一个小盘点：\n1. 这件事影响的是谁的责任\n2. 未来 3 到 5 年有没有确定支出\n3. 现有现金流和保障安排能不能互相配合\n\n很多规划不是从买什么开始，而是从看清楚家庭结构开始。`,
-    night: `${cue}\n\n今天复盘这个话题，我会把重点放在一个判断上：${topic.misread}\n\n家庭规划真正有价值的地方，是把一团压力拆成可以讨论、可以排序、可以慢慢补齐的事项。\n\n不急着下结论，先把问题讲清楚，已经是很重要的一步。`
+    morning: `${cue}\n\n${opening}\n\n科普一点：${knowledgeLine}\n\n我更建议先问一个问题：${topic.question}\n\n把这个问题想清楚，再谈工具和方案，心里会稳很多。`,
+    noon: `${cue}\n\n午间可以先做一个小盘点：\n${knowledgeList}\n\n很多规划不是从买什么开始，而是从看清楚家庭结构开始。`,
+    night: `${cue}\n\n今天复盘这个话题，我会把重点放在一个判断上：${topic.misread}\n\n补充两个基础认知：\n${knowledgeBrief}\n\n不急着下结论，先把问题讲清楚，已经是很重要的一步。`
   }[slot.id];
 
-  const shortText = `${cue}\n\n${topic.insight}\n\n先问自己一句：${topic.question}\n\n规划不制造焦虑，也不承诺结果，只帮助家庭把问题看清楚。`;
+  const shortText = `${cue}\n\n科普一点：${knowledgeLine}\n\n先问自己一句：${topic.question}\n\n规划不制造焦虑，也不承诺结果，只帮助家庭把问题看清楚。`;
   const post = tone.id === "short" ? shortText : slotText;
   const title = {
     morning: `${topic.title}，先问对问题`,
@@ -244,22 +273,22 @@ function buildMaterial(trend, slot, tone, customText) {
     client: {
       label: "客户版",
       purpose: "适合直接发朋友圈，客户读起来不压迫",
-      text: `${cue}\n\n很多家庭看到这类话题，会先问“要不要马上做点什么”。\n\n我的建议反而是先慢一点：先看清家里现在承担哪些责任，未来几年有哪些确定支出，已有安排能不能接得住。\n\n${topic.question}\n\n把这个问题聊清楚，比急着找答案更重要。`
+      text: `${cue}\n\n很多家庭看到这类话题，会先问“要不要马上做点什么”。\n\n先补一个基础认知：${knowledgeLine}\n\n我的建议反而是先慢一点：先看清家里现在承担哪些责任，未来几年有哪些确定支出，已有安排能不能接得住。\n\n${topic.question}\n\n把这个问题聊清楚，比急着找答案更重要。`
     },
     peer: {
       label: "同业版",
       purpose: "适合建立专业判断，给同业看到方法感",
-      text: `${cue}\n\n这个选题的价值，不在于蹭热点，而在于把公众情绪转成家庭规划问题。\n\n可以从三个层面拆：\n1. 责任对象是谁\n2. 现金流压力在哪里\n3. 已有安排是否互相配合\n\n${topic.misread}\n\n越是热点，越要回到家庭真实结构。`
+      text: `${cue}\n\n这个选题的价值，不在于蹭热点，而在于把公众情绪转成家庭规划问题。\n\n科普拆解可以这样表达：\n${knowledgeList}\n\n${topic.misread}\n\n越是热点，越要回到家庭真实结构。`
     },
     family: {
       label: "家庭聊天版",
       purpose: "适合生活化表达，不像宣传",
-      text: `${cue}\n\n这件事其实挺适合一家人坐下来聊聊。\n\n不是为了马上做决定，也不是为了制造压力，而是看看如果真的遇到类似情况，家里谁负责、钱怎么安排、哪些事需要提前说清楚。\n\n${topic.question}\n\n很多家庭问题，提前聊过一次，后面就少一点慌。`
+      text: `${cue}\n\n这件事其实挺适合一家人坐下来聊聊。\n\n先把常识说清楚：${knowledgeLine}\n\n不是为了马上做决定，也不是为了制造压力，而是看看如果真的遇到类似情况，家里谁负责、钱怎么安排、哪些事需要提前说清楚。\n\n${topic.question}\n\n很多家庭问题，提前聊过一次，后面就少一点慌。`
     },
     quote: {
       label: "金句版",
       purpose: "适合做封面主文案或短朋友圈",
-      text: `${topic.insight}\n\n热点提醒我们关注问题，规划帮助家庭看清顺序。\n\n先看责任，再看现金流，最后看已有安排。`
+      text: `${topic.insight}\n\n热点提醒我们关注问题，科普帮助我们看清结构。\n\n先懂责任，再看现金流，最后看已有安排。`
     }
   };
 
@@ -278,6 +307,7 @@ function buildMaterial(trend, slot, tone, customText) {
       audience: topic.audience,
       angle: topic.angle,
       insight: topic.insight,
+      knowledge,
       boundary: "只做家庭规划提醒，不承诺收益、不暗示产品结果、不制造焦虑。"
     },
     post,
@@ -287,16 +317,17 @@ function buildMaterial(trend, slot, tone, customText) {
       subtitle: "先看家庭责任，再看现金流，再看已有安排",
       modules: topic.visualModules,
       insight: topic.insight,
+      knowledge: knowledgeLine,
       question: topic.question,
       footer: "内容仅作家庭规划思路参考，不构成具体产品建议。"
     },
-    card: `主标题：${title}\n副标题：先看家庭责任，再看现金流，再看已有安排\n画面结构：${topic.visualModules.join(" / ")}\n视觉要求：白底留白，蓝绿主色，金色只做重点提示，右下角放申学 Family logo。\n底部小字：内容仅作家庭规划思路参考，不构成具体产品建议。`,
+    card: `主标题：${title}\n副标题：热点是参考，科普才是主体\n科普信息：${knowledgeLine}\n画面结构：${topic.visualModules.join(" / ")}\n视觉要求：白底留白，蓝绿主色，金色只做重点提示，右下角放申学 Family logo。\n底部小字：内容仅作家庭规划思路参考，不构成具体产品建议。`,
     comment: `你觉得${topic.title}最容易被忽略的是钱、时间，还是家庭沟通？`,
     chat: `您好，我今天整理了一个关于「${topic.title}」的小盘点。它不涉及具体产品，主要是帮助家庭先看清责任、现金流和已有安排。您有空的话，可以先从这个问题开始：${topic.question}`,
     extensions: [
-      `明天可以延展：${topic.title}的家庭责任清单`,
+      `明天可以延展：${topic.title}的基础科普问答`,
       `本周可以做一张：${topic.visualModules[0]}朋友圈知识卡`,
-      `私域承接可以问：现在家里最确定的一笔长期支出是什么`
+      `私域承接可以问：这类问题在您家里最容易卡在哪一步`
     ],
     compliance: ["不做收益承诺", "不制造焦虑", "不夸大保障", "不承诺具体产品结果"],
     quality: qualityRules,
@@ -331,6 +362,10 @@ ${variantText || "旧版素材未生成多版本内容。"}
 - 内容角度：${material.strategy.angle}
 - 专业判断：${material.strategy.insight}
 - 合规边界：${material.strategy.boundary}
+
+## 科普补充
+
+${(material.strategy.knowledge || []).map((item) => `- ${item}`).join("\n")}
 
 ## 配图方向
 
@@ -754,6 +789,13 @@ export default function MomentsStandalonePage() {
                 <h2>{material.title}</h2>
                 <p>{material.post}</p>
                 <button onClick={() => copyText("post", material.post)}><Clipboard size={15} />{copied === "post" ? "已复制" : "复制正文"}</button>
+              </div>
+
+              <div className="asset compact">
+                <span>科普补充</span>
+                <ul className="extension-list">
+                  {material.strategy.knowledge.map((item) => <li key={item}>{item}</li>)}
+                </ul>
               </div>
 
               <div className="variant-board">
