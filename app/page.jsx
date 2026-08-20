@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   Check,
   Clipboard,
+  Clock,
   Download,
   ExternalLink,
   FileText,
@@ -134,6 +135,13 @@ const qualityRules = ["有具体家庭场景", "有误区修正", "有可执行�
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function formatLiveTime(value) {
+  return {
+    date: value.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit", weekday: "short" }),
+    time: value.toLocaleTimeString("zh-CN", { hour12: false, hour: "2-digit", minute: "2-digit", second: "2-digit" })
+  };
 }
 
 function loadJson(key, fallback) {
@@ -362,6 +370,7 @@ export default function MomentsStandalonePage() {
   const [copied, setCopied] = useState("");
   const [cardImage, setCardImage] = useState("");
   const [renderingCard, setRenderingCard] = useState(false);
+  const [now, setNow] = useState(null);
 
   useEffect(() => {
     window.localStorage.setItem(storageKeys.archive, JSON.stringify(archive));
@@ -377,6 +386,7 @@ export default function MomentsStandalonePage() {
   const tone = useMemo(() => tones.find((item) => item.id === toneId) || tones[0], [toneId]);
   const audience = useMemo(() => audiences.find((item) => item.id === audienceId) || audiences[0], [audienceId]);
   const today = new Date().toLocaleDateString("zh-CN", { month: "2-digit", day: "2-digit", weekday: "short" });
+  const liveTime = useMemo(() => (now ? formatLiveTime(now) : { date: today, time: "--:--:--" }), [now, today]);
   const riskHits = useMemo(() => {
     const variantText = material?.variants ? Object.values(material.variants).map((item) => item.text).join("\n") : "";
     const text = [customText, material?.post, material?.chat, variantText].filter(Boolean).join("\n");
@@ -405,6 +415,16 @@ export default function MomentsStandalonePage() {
     const timer = window.setTimeout(refreshTrends, 0);
     return () => window.clearTimeout(timer);
   }, [refreshTrends]);
+
+  useEffect(() => {
+    const updateClock = () => setNow(new Date());
+    const starter = window.setTimeout(updateClock, 0);
+    const timer = window.setInterval(updateClock, 1000);
+    return () => {
+      window.clearTimeout(starter);
+      window.clearInterval(timer);
+    };
+  }, []);
 
   const syncMaterial = (nextTrend, nextSlot, nextTone, nextText) => {
     setMaterial((current) => (current ? buildMaterial(nextTrend, nextSlot, nextTone, nextText) : current));
@@ -600,6 +620,12 @@ export default function MomentsStandalonePage() {
           <span className="eyebrow">DAILY MOMENTS PLANNER · {today}</span>
           <h1>把今天的热点，转成可以安心发布的朋友圈素材。</h1>
           <p>当前是独立稳定版：不依赖云端接口，先把选题、生成、复制、下载、存档和发布打卡跑顺。</p>
+          <div className="live-clock" aria-label="当前时间">
+            <Clock size={18} />
+            <span>当前时间</span>
+            <strong suppressHydrationWarning>{liveTime.time}</strong>
+            <small suppressHydrationWarning>{liveTime.date}</small>
+          </div>
         </div>
         <div className="rhythm">
           {slots.map((item) => (
